@@ -1,57 +1,105 @@
 import re
 
+regex = re.compile(r"\[(.*?)\]")
+
+
+'''
+l1 = "[ S ] > [ X ] [ Y ] [ Z ]		# O simbolo de \">\" representa a derivacao [r]."
+l2 = "[ a ]	[b]"
+#l3 = "[ b ]"
+
+#print(re.findall(regex, l3))
+#print(re.findall(regex, l2))
+#l = re.finditer(regex, l1)
+
+print(re.findall(regex, l1.split('#')[0]))
+print(re.findall(regex, l2))
+
+'''
 ##################################################
 # Adiciona símbolo terminal na lista
-def adicionaTerminal(t):
-    t = re.sub('[\[\]]', '', t)
-    terminais.insert( len(terminais), t.strip() )
+def adicionaTerminal(linhaTerm):
+    simbolos = re.findall(regex, linhaTerm.split('#')[0])
+    for terminal in simbolos:
+        terminais.insert( len(terminais), terminal.strip() )
 
 ##################################################
 # Adiciona variável de transição na lista
-def adicionaVariavel(v):
-    v = re.sub('[\[\]]', '', v)
-    variaveis.insert( len(variaveis), v.strip() )
+def adicionaVariavel(linhaVar):
+    simbolos = re.findall(regex, linhaVar.split('#')[0])
+    for variavel in simbolos:
+        variaveis.insert( len(variaveis), variavel.strip() )
 
 ##################################################
 # Inicializa lista de regras com o identificador de
 # palavra vazia
 def inicializaRegras():
-    for x in variaveis:
-        regras.insert( 0, palavraVazia )
+  for i in range(len(variaveis)):
+    regras.insert(i, [variaveis[i]])
 
 ##################################################
-# Insere regra de transição na lista de regras,
+# Insere regra de produção na lista de regras,
 # mantendo a referência com as listas de variáveis
 # e de símbolos terminais
-#def adicionaRegraDeTransicao(r):
-#    regras.insert(,r)
+def adicionaRegraDeProducao(linhaRegra):
+  simbolos = re.findall(regex, linhaRegra.split('#')[0])
+  if simbolos[0].strip() in variaveis:
+    r = []
+    for n in range(len(simbolos) - 1):
+      r.append(simbolos[n+1].strip())
+    indice = variaveis.index(simbolos[0].strip())
+    regras[indice].append(r)
+
+
+#################################################
+# Exibe a definição formal da gramática detalhada
+# no arquivo
+def exibeDefinicaoFormalGramatica():
+  print("G = (")
+  # Variáveis
+  gramatica = "     {"+", ".join(variaveis)+"},"
+  print(gramatica)
+  # terminais
+  gramatica = "     {"+", ".join(terminais)+"},"
+  print(gramatica)
+  # Regras de produção
+
+  print("     {")
+  for i in range(len(regras)):
+    for j in range(len(regras[i])):
+        if j == 0:
+            gramatica = "       "+ regras[i][j] + " -> "
+        else:
+            r = " ".join(regras[i][j])
+            if j > 1:
+                gramatica = gramatica + " | "
+            gramatica = gramatica + r
+    print(gramatica+";")
+
+  print("     },")
+  # Variavel inicial
+  print("     "+variavelInicial+"\n    )")
 
 ##################################################
 # Programa principal
 
 # CORRIGIR: temos que entender como o script receberá
 # o nome do arquivo de entrada (provavelmente será um
-# parâmetro da chamada do script). 
-lines = [line.strip('\n') for line in open('gram1.txt')]
+# parâmetro da chamada do script).
+arquivo = 'gram1.txt'
 
-# isso aqui é firula
-titles = ["Primeiro grupo: Símbolos terminais",
-          "Segundo grupo: Variáveis",
-          "Terceiro grupo: Variável inicial",
-          "Quarto grupo: Regras de transição"]
+lines = [line.strip('\n') for line in open(arquivo)]
 
 # Variáveis e listas usadas no programa
 i = 0
 terminais = []
 variaveis = []
-variavelInicial = ''
 regras = []
+variavelInicial = ''
 palavraVazia = 'V'
-
 
 for line in lines:
     if line[0] == '#':
-        print(titles[i])
         i = i + 1
     else: # adiciona às listas os termos sem hash
         if i == 1:
@@ -61,14 +109,13 @@ for line in lines:
             adicionaVariavel(line)
         elif i == 3:
             variaveis.sort()
-            variavelInicial = re.sub('[\[\]]', '', line)
+            var = re.findall(regex, line.split('#')[0])
+            variavelInicial = var[0].strip()
             inicializaRegras()
-#        elif i == 4:
-#            adicionaRegraDeTransicao(line)
+        elif i == 4:
+            adicionaRegraDeProducao(line)
         else:
-            print(line)
+            print("Sessão do arquivo não esperada. Abortando execução.")
 
-print(terminais)
-print(variaveis)
-print(variavelInicial)
-print(regras)
+
+exibeDefinicaoFormalGramatica()
