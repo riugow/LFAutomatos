@@ -66,15 +66,20 @@ def exibeDefinicaoFormalGramatica():
 
   print("     {")
   for i in range(len(regras)):
-    for j in range(len(regras[i])):
-        if j == 0:
-            gramatica = "       "+ regras[i][j] + " -> "
-        else:
-            r = " ".join(regras[i][j])
-            if j > 1:
-                gramatica = gramatica + " | "
-            gramatica = gramatica + r
-    print(gramatica+";")
+    if (len(regras[i]) > 1):
+        for j in range(len(regras[i])):
+            if j == 0:
+                gramatica = "       "+ regras[i][j] + " -> "
+            else:
+                r = " ".join(regras[i][j])
+                if j > 1:
+                    gramatica = gramatica + " | "
+                gramatica = gramatica + r
+        print(gramatica+";")
+
+  print("     },")
+  # Variavel inicial
+  print("     "+variavelInicial+"\n    )")
 
   print("     },")
   # Variavel inicial
