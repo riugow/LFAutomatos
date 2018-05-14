@@ -2,20 +2,6 @@ import re
 
 regex = re.compile(r"\[(.*?)\]")
 
-
-'''
-l1 = "[ S ] > [ X ] [ Y ] [ Z ]		# O simbolo de \">\" representa a derivacao [r]."
-l2 = "[ a ]	[b]"
-#l3 = "[ b ]"
-
-#print(re.findall(regex, l3))
-#print(re.findall(regex, l2))
-#l = re.finditer(regex, l1)
-
-print(re.findall(regex, l1.split('#')[0]))
-print(re.findall(regex, l2))
-
-'''
 ##################################################
 # Adiciona símbolo terminal na lista
 def adicionaTerminal(linhaTerm):
@@ -66,20 +52,15 @@ def exibeDefinicaoFormalGramatica():
 
   print("     {")
   for i in range(len(regras)):
-    if (len(regras[i]) > 1):
-        for j in range(len(regras[i])):
-            if j == 0:
-                gramatica = "       "+ regras[i][j] + " -> "
-            else:
-                r = " ".join(regras[i][j])
-                if j > 1:
-                    gramatica = gramatica + " | "
-                gramatica = gramatica + r
-        print(gramatica+";")
-
-  print("     },")
-  # Variavel inicial
-  print("     "+variavelInicial+"\n    )")
+    for j in range(len(regras[i])):
+        if j == 0:
+            gramatica = "       "+ regras[i][j] + " -> "
+        else:
+            r = " ".join(regras[i][j])
+            if j > 1:
+                gramatica = gramatica + " | "
+            gramatica = gramatica + r
+    print(gramatica+";")
 
   print("     },")
   # Variavel inicial
@@ -88,12 +69,14 @@ def exibeDefinicaoFormalGramatica():
 ##################################################
 # Programa principal
 
-# CORRIGIR: temos que entender como o script receberá
-# o nome do arquivo de entrada (provavelmente será um
-# parâmetro da chamada do script).
-arquivo = 'gram1.txt'
+filename = input('Type the filename: ')
 
-lines = [line.strip('\n') for line in open(arquivo)]
+try:
+    arquivo = open(filename)
+except IOError:
+    print("***ERROR! Invalid filename***")
+
+lines = [line.strip('\n') for line in arquivo]
 
 # Variáveis e listas usadas no programa
 i = 0
@@ -105,7 +88,14 @@ palavraVazia = 'V'
 
 for line in lines:
     if line[0] == '#':
-        i = i + 1
+        if line.startswith('#Terminais'):
+            i = 1
+        elif line.startswith('#Variaveis'):
+            i = 2
+        elif line.startswith('#Inicial'):
+            i = 3
+        elif line.startswith('#Regras'):
+            i = 4
     else: # adiciona às listas os termos sem hash
         if i == 1:
             adicionaTerminal(line)
