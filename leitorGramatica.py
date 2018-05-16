@@ -122,8 +122,77 @@ def simplificaGramatica():
         for derivacao in destino:
             regras[regras.index(origem)].append(derivacao)
     exibeDefinicaoFormalGramatica()
-    print("Passo 3: Excluindo símbolos inúteis - Nada feito ainda")
+    print("Passo 3: Excluindo símbolos inúteis")
     # Passo 3 - Etapa 1
+    variaveisGeradoras = []
+    terminaisEVariaveis = terminais[:]
+    tamanhoVariaveisGeradoras = -1
+    while (tamanhoVariaveisGeradoras != len(variaveisGeradoras)):
+        tamanhoVariaveisGeradoras = len(variaveisGeradoras)
+        for i in range(len(regras)):
+            for j in range(1, len(regras[i])):
+                for t in terminaisEVariaveis:
+                    if t in regras[i][j] and regras[i][0] not in variaveisGeradoras:
+                        variaveisGeradoras.append(regras[i][0])
+                        terminaisEVariaveis.append(regras[i][0])
+
+    for var in variaveis:
+        if var not in variaveisGeradoras:
+            for i in range(len(regras)):
+                if regras[i][0] == var:
+                    derivacaoARemover = [s for s in regras if var in s][0]
+                    regras.remove(derivacaoARemover)
+                for derivacao in regras[i][1:]:
+                    if var in derivacao:
+                        regras[i].remove(derivacao)
+
+    for var in variaveis:
+        if var not in variaveisGeradoras:
+            variaveis.remove(var)
+
+    # Passo 3 - Etapa 2
+    variaveisDerivadas = [variavelInicial]
+    terminaisAlcancados = []
+    tamVariaveisDerivadas = 0
+    tamTerminaisAlcancados = -1
+    while tamVariaveisDerivadas != len(variaveisDerivadas) and tamTerminaisAlcancados != len(terminaisAlcancados):
+        tamVariaveisDerivadas = len(variaveisDerivadas)
+        tamTerminaisAlcancados = len(terminaisAlcancados)
+        for i in range(len(regras)):
+            for derivacao in regras[i][1:]:
+                for var in variaveis:
+                    if var in derivacao and var not in variaveisDerivadas:
+                        variaveisDerivadas.append(var)
+                for term in terminais:
+                    if term in derivacao and term not in terminaisAlcancados:
+                        terminaisAlcancados.append(term)
+
+    for var in variaveis:
+        if var not in variaveisDerivadas:
+            for i in range(len(regras)):
+                if regras[i][0] == var:
+                    derivacaoARemover = [s for s in regras if var in s][0]
+                    regras.remove(derivacaoARemover)
+                for derivacao in regras[i][1:]:
+                    if var in derivacao:
+                        regras[i].remove(derivacao)
+
+    for term in terminais:
+        if term not in terminaisAlcancados:
+            for i in range(len(regras)):
+                for derivacao in regras[i][1:]:
+                    if term in derivacao:
+                        regras[i].remove(derivacao)
+
+    for var in variaveis:
+        if var not in variaveisDerivadas:
+            variaveis.remove(var)
+
+    for term in terminais:
+        if term not in terminaisAlcancados:
+            terminais.remove(term)
+
+    exibeDefinicaoFormalGramatica()
 
 
 ##################################################
