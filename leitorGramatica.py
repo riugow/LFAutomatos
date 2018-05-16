@@ -67,6 +67,66 @@ def exibeDefinicaoFormalGramatica():
   print("     "+variavelInicial+"\n    )")
 
 ##################################################
+# simplifica a gramática
+def simplificaGramatica():
+    print("Aplicando algoritmos de simplificação da gramática.")
+    print("Passo 1: Excluindo produções vazias")
+    # Passo 1 - Etapa 1
+    derivacoesVazias = ['V']
+    tamanhoDerivacoesVazias = 0
+    while (tamanhoDerivacoesVazias != len(derivacoesVazias)):
+        if 'V' in derivacoesVazias:
+            tamanhoDerivacoesVazias = 0
+        else:
+            tamanhoDerivacoesVazias = len(derivacoesVazias)
+        for i in range(len(regras)):
+            for j in range(1, len(regras[i])):
+                for var in derivacoesVazias:
+                    if var in regras[i][j] and regras[i][0] not in derivacoesVazias:
+                        derivacoesVazias.append(regras[i][0])
+            if ['V'] in regras[i]:
+                regras[i].remove(['V'])
+        if 'V' in derivacoesVazias:
+            derivacoesVazias.remove('V')
+    # Passo 1 - Etapa 2
+    for i in range(len(regras)):
+        for j in range(1, len(regras[i])):
+            for var in derivacoesVazias:
+                if var in regras[i][j] and len(regras[i][j]) > 1:
+                    for k in [n for n,x in enumerate(regras[i][j]) if x == var]:
+                        r = regras[i][j][:]
+                        r.pop(k)
+                        regras[i].append(r)
+    # Passo 1 - Etapa 3
+    if variavelInicial in derivacoesVazias:
+        vazia = []
+        vazia.append('V')
+        v = [s for s in regras if variavelInicial in s][0]
+        regras[regras.index(v)].append(vazia)
+    exibeDefinicaoFormalGramatica()
+    print("Passo 2: Excluindo produções que substituem variáveis")
+    # Passo 2 - Etapa 1
+    fecho = []
+    for i in range(len(regras)):
+        for derivacao in regras[i][1:]:
+            for v in variaveis:
+                if v in derivacao and len(derivacao) == 1:
+                    f = [regras[i][0], derivacao[0]]
+                    fecho.append(f)
+                    # Passo 2 - Etapa 2
+                    regras[i].remove(derivacao)
+    # Passo 2 - Etapa 2 (sim, começou no loop acima e terminou aqui)
+    for f in fecho:
+        origem = [s for s in regras if f[0] in s][0]
+        destino = [s for s in regras if f[1] in s][0][1:]
+        for derivacao in destino:
+            regras[regras.index(origem)].append(derivacao)
+    exibeDefinicaoFormalGramatica()
+    print("Passo 3: Excluindo símbolos inúteis - Nada feito ainda")
+    # Passo 3 - Etapa 1
+
+
+##################################################
 # Programa principal
 
 filename = input('Type the filename: ')
