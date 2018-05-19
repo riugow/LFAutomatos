@@ -244,11 +244,7 @@ def formaNormalChomsky():
                 novaDerivacao = regras[i][j][:]
                 novaDerivacao.pop(0)
                 variavelSubstituta = criaVariavel()
-                for k in range(len(regras)):
-                    for l in range(1, len(regras[k])):
-                        if novaDerivacao == regras[k][l]:
-                            variavelSubstituta = regras[k][0]
-                            break
+                
                 derivacaoSubstituta.append(regras[i][j][0])
                 derivacaoSubstituta.append(variavelSubstituta)
                 regras[i][j] = derivacaoSubstituta[:]
