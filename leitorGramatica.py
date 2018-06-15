@@ -2,6 +2,8 @@ import re
 
 regex = re.compile(r"\[(.*?)\]")
 
+#frase = "Mary saw Jupiter with Mars in the sky"
+
 ##################################################
 # Adiciona símbolo terminal na lista
 def adicionaTerminal(linhaTerm):
@@ -43,18 +45,18 @@ def adicionaRegraDeProducao(linhaRegra):
 def exibeDefinicaoFormalGramatica():
   print("G = (")
   # Variáveis
-  gramatica = "     {"+", ".join(variaveis)+"},"
+  gramatica = "     V = {"+", ".join(variaveis)+"},"
   print(gramatica)
   # terminais
-  gramatica = "     {"+", ".join(terminais)+"},"
+  gramatica = "     T = {"+", ".join(terminais)+"},"
   print(gramatica)
   # Regras de produção
 
-  print("     {")
+  print("     P = {")
   for i in range(len(regras)):
     for j in range(len(regras[i])):
         if j == 0:
-            gramatica = "       "+ regras[i][j] + " -> "
+            gramatica = "           "+ regras[i][j] + " -> "
         else:
             r = " ".join(regras[i][j])
             if j > 1:
@@ -62,47 +64,87 @@ def exibeDefinicaoFormalGramatica():
             gramatica = gramatica + r
     print(gramatica+";")
 
-  print("     },")
+  print("         },")
   # Variavel inicial
   print("     "+variavelInicial+"\n    )")
 
+##################################################
+# imprime a tabela de derivacao
+def imprimeTabelaDeDerivacao(tabela, termos):
+    impressao = ['+']
+    for i in range(len(termos) + 1):
+        impressao.append('|')
+        impressao.append('+')
+
+    bordaHorizontal = ''
+    largura = 0
+    for i in range(len(termos)):
+        largura = len(termos[i])
+        for j in range(i, len(tabela)):
+            if len(', '.join(tabela[j][i])) > largura:
+                largura = len(', '.join(tabela[j][i]))
+        bordaHorizontal = '-'
+        for j in range(largura):
+            bordaHorizontal += '-'
+        bordaHorizontal += '-+'
+        for j in range(i*2, len(impressao), 2):
+            impressao[j] += bordaHorizontal
+        for j in range(i, len(tabela)):
+            termo = ' ' + ', '.join(tabela[j][i])
+            for k in range(largura - len(termo) + 1):
+                termo += ' '
+            impressao[j*2+1] += termo + ' |'
+        termo = ' ' + ''.join(termos[i])
+        for j in range(largura - len(termo) + 1):
+            termo += ' '
+        impressao[len(impressao) - 2] += termo + ' |'
+    print('\n'.join(impressao))
 ##################################################
 # simplifica a gramática
 def simplificaGramatica():
     print("Aplicando algoritmos de simplificação da gramática.")
     print("Passo 1: Excluindo produções vazias")
     # Passo 1 - Etapa 1
-    derivacoesVazias = ['V']
+    variaveisProducoesVazias = ['V']
     tamanhoDerivacoesVazias = 0
-    while (tamanhoDerivacoesVazias != len(derivacoesVazias)):
-        if 'V' in derivacoesVazias:
-            tamanhoDerivacoesVazias = 0
-        else:
-            tamanhoDerivacoesVazias = len(derivacoesVazias)
-        for i in range(len(regras)):
-            for j in range(1, len(regras[i])):
-                for var in derivacoesVazias:
-                    if var in regras[i][j] and regras[i][0] not in derivacoesVazias:
-                        derivacoesVazias.append(regras[i][0])
-            if ['V'] in regras[i]:
-                regras[i].remove(['V'])
-        if 'V' in derivacoesVazias:
-            derivacoesVazias.remove('V')
-    # Passo 1 - Etapa 2
-    for i in range(len(regras)):
-        for j in range(1, len(regras[i])):
-            for var in derivacoesVazias:
-                if var in regras[i][j] and len(regras[i][j]) > 1:
-                    for k in [n for n,x in enumerate(regras[i][j]) if x == var]:
-                        r = regras[i][j][:]
-                        r.pop(k)
-                        regras[i].append(r)
+    existemProducoesVazias = True
+    while(existemProducoesVazias):
+        existemProducoesVazias = False
+        while (tamanhoDerivacoesVazias != len(variaveisProducoesVazias)):
+            if 'V' in variaveisProducoesVazias:
+                tamanhoDerivacoesVazias = 0
+            else:
+                tamanhoDerivacoesVazias = len(variaveisProducoesVazias)
+            for i in range(len(regras)):
+                for j in range(1, len(regras[i])):
+                    for var in variaveisProducoesVazias:
+                        if var in regras[i][j] and len(regras[i][j]) == 1 and regras[i][0] not in variaveisProducoesVazias:
+                            variaveisProducoesVazias.append(regras[i][0])
+                            existemProducoesVazias = True
+                if ['V'] in regras[i]:
+                    regras[i].remove(['V'])
+            if 'V' in variaveisProducoesVazias:
+                variaveisProducoesVazias.remove('V')
+        # Passo 1 - Etapa 2
+        derivacoesCorrigidas = True
+        while (derivacoesCorrigidas == True):
+            derivacoesCorrigidas = False
+            for i in range(len(regras)):
+                for j in range(1, len(regras[i])):
+                    for var in variaveisProducoesVazias:
+                        if var in regras[i][j] and len(regras[i][j]) > 1:
+                            for k in [n for n,x in enumerate(regras[i][j]) if x == var]:
+                                r = regras[i][j][:]
+                                r.pop(k)
+                                if r not in regras[i]:
+                                    regras[i].append(r)
+                                    derivacoesCorrigidas = True
     # Passo 1 - Etapa 3
-    if variavelInicial in derivacoesVazias:
-        vazia = []
-        vazia.append('V')
-        v = [s for s in regras if variavelInicial in s][0]
-        regras[regras.index(v)].append(vazia)
+    derivacoesVariavelInicial = [s for s in regras if variavelInicial in s][0]
+    for v in derivacoesVariavelInicial[1:]:
+        vazia = ['V']
+        if len(v) == 1 and v[0] in variaveisProducoesVazias and vazia not in regras[regras.index(derivacoesVariavelInicial)]:
+            regras[regras.index(derivacoesVariavelInicial)].append(vazia)
     exibeDefinicaoFormalGramatica()
     print("Passo 2: Excluindo produções que substituem variáveis")
     # Passo 2 - Etapa 1
@@ -224,16 +266,19 @@ def formaNormalChomsky():
         if t not in terminaisNormalizados:
             novaVariavel = criaVariavel(False)
             terminaisNormalizados.append(t)
-            variaveis.append(novaVariavel)
+            terminalSubstituido = False
             for i in range(len(regras)):
                 for j in range(1, len(regras[i])):
                     if len(regras[i][j]) > 1 and t in regras[i][j]:
                         regras[i][j] = [novaVariavel if x==t else x for x in regras[i][j]][:]
-            d = []
-            d.append(novaVariavel)
-            novaDerivacao.append(t)
-            d.append(novaDerivacao)
-            regras.append(d)
+                        terminalSubstituido = True
+            if terminalSubstituido:
+                d = []
+                d.append(novaVariavel)
+                variaveis.append(novaVariavel)
+                novaDerivacao.append(t)
+                d.append(novaDerivacao)
+                regras.append(d)
 
     # Etapa 2 : confere / reduz derivações com mais de três variáveis à direita
     for i in range(len(regras)):
@@ -244,7 +289,10 @@ def formaNormalChomsky():
                 novaDerivacao = regras[i][j][:]
                 novaDerivacao.pop(0)
                 variavelSubstituta = criaVariavel()
-                
+                for k in range(len(regras)):
+                    if novaDerivacao == regras[k][1] and len(regras[k]) < 3:
+                        variavelSubstituta = regras[k][0]
+
                 derivacaoSubstituta.append(regras[i][j][0])
                 derivacaoSubstituta.append(variavelSubstituta)
                 regras[i][j] = derivacaoSubstituta[:]
@@ -258,9 +306,49 @@ def formaNormalChomsky():
 
     exibeDefinicaoFormalGramatica()
 ##################################################
+# Reconhecimento de entrada usando o algoritmo de
+# Cocke-Younger-Kasami
+def cyk(entrada):
+    print('Verificando a aceitação da expressão informada pela gramática')
+    print('usando o algoritmo de Cocke-Younger-Kasami:')
+    #print('Verificando a aceitação da expressão\'' + entrada + '\'')
+    #print('pela gramática usando o algoritmo de Cocke-Younger-Kasami:')
+
+    termos = entrada.split()
+    tabelaTriangular = []
+    linha = []
+    for termo in termos:
+        var = []
+        for i in range(len(regras)):
+            for derivacao in regras[i][1:]:
+                if termo in derivacao:
+                    var.append(regras[i][0])
+        linha.append(var)
+    tabelaTriangular.append(linha)
+
+    for n in range(len(termos) - 1):
+        linha = []
+        for r in range(len(tabelaTriangular[0])-1):
+            var = []
+            for s in range(len(tabelaTriangular)):
+                for i in range(len(regras)):
+                    for derivacao in regras[i][1:]:
+                        if len(derivacao) == 2:
+                            if derivacao[0] in tabelaTriangular[len(tabelaTriangular) - s - 1][r] and derivacao[1] in tabelaTriangular[s][r + s + 1]:
+                                if regras[i][0] not in var:
+                                    var.append(regras[i][0])
+            linha.append(var)
+        tabelaTriangular.insert(0, linha)
+    if variavelInicial in tabelaTriangular[0][0]:
+        print('A expressão informada foi reconhecida pela gramática!')
+        imprimeTabelaDeDerivacao(tabelaTriangular, termos)
+    else:
+        print('A expressão informada NÃO foi reconhecida pela gramática.')
+##################################################
 # Programa principal
 
-filename = input('Type the filename: ')
+filename = input('Informe o nome do arquivo: ')
+#filename = 'gram3.txt'
 
 try:
     arquivo = open(filename)
@@ -309,3 +397,6 @@ if (i != 5):
     exibeDefinicaoFormalGramatica()
     simplificaGramatica()
     formaNormalChomsky()
+    print('Informe a expressão a ter ser reconhecimento verificado pela gramática.')
+    frase = input('NOTA: Separe cada termo usando um espaço em branco: ')
+    cyk(frase)
