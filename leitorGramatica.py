@@ -187,6 +187,17 @@ def simplificaGramatica():
         tamanhoVariaveisGeradoras = len(variaveisGeradoras)
         for i in range(len(regras)):
             for j in range(1, len(regras[i])):
+                tamanhoDerivacao = len(regras[i][j])
+                for t in terminais:
+                    if t in regras[i][j]:
+                        tamanhoDerivacao = tamanhoDerivacao - 1
+                for var in variaveisGeradoras:
+                    if var in regras[i][j]:
+                        tamanhoDerivacao = tamanhoDerivacao - 1
+                if tamanhoDerivacao == 0 and regras[i][0] not in variaveisGeradoras:
+                    variaveisGeradoras.append(regras[i][0])
+                    terminaisEVariaveis.append(regras[i][0])
+                '''
                 for t in terminaisEVariaveis:
                     tamanhoDerivacao = len(regras[i][j])
                     if t in regras[i][j] and t in terminais:
@@ -197,6 +208,7 @@ def simplificaGramatica():
                     if tamanhoDerivacao == 0 and regras[i][0] not in variaveisGeradoras:
                         variaveisGeradoras.append(regras[i][0])
                         terminaisEVariaveis.append(regras[i][0])
+                '''
 
     tamanhoRegras = len(regras)
     for var in variaveis:
@@ -323,28 +335,32 @@ def formaNormalChomsky():
                 regras.append(d)
 
     # Etapa 2 : confere / reduz derivações com mais de três variáveis à direita
-    for i in range(len(regras)):
-        for j in range(1, len(regras[i])):
-            derivacaoSubstituta = []
-            #Para produções de tamanho maior que 2, simplificar
-            while len(regras[i][j]) > 2:
-                novaDerivacao = regras[i][j][:]
-                novaDerivacao.pop(0)
-                variavelSubstituta = criaVariavel()
-                for k in range(len(regras)):
-                    if novaDerivacao == regras[k][1] and len(regras[k]) < 3:
-                        variavelSubstituta = regras[k][0]
+    verificarDerivacoes = True
+    while verificarDerivacoes:
+        verificarDerivacoes = False
+        for i in range(len(regras)):
+            for j in range(1, len(regras[i])):
+                derivacaoSubstituta = []
+                #Para produções de tamanho maior que 2, simplificar
+                if len(regras[i][j]) > 2:
+                    novaDerivacao = regras[i][j][:]
+                    novaDerivacao.pop(0)
+                    variavelSubstituta = criaVariavel()
+                    for k in range(len(regras)):
+                        if novaDerivacao == regras[k][1] and len(regras[k]) < 3:
+                            variavelSubstituta = regras[k][0]
 
-                derivacaoSubstituta.append(regras[i][j][0])
-                derivacaoSubstituta.append(variavelSubstituta)
-                regras[i][j] = derivacaoSubstituta[:]
+                    derivacaoSubstituta.append(regras[i][j][0])
+                    derivacaoSubstituta.append(variavelSubstituta)
+                    regras[i][j] = derivacaoSubstituta[:]
+                    verificarDerivacoes = verificarDerivacoes or (len(novaDerivacao) > 2)
 
-                if (variavelSubstituta not in variaveis):
-                    variaveis.append(variavelSubstituta)
-                    d = []
-                    d.append(variavelSubstituta)
-                    d.append(novaDerivacao)
-                    regras.append(d)
+                    if (variavelSubstituta not in variaveis):
+                        variaveis.append(variavelSubstituta)
+                        d = []
+                        d.append(variavelSubstituta)
+                        d.append(novaDerivacao)
+                        regras.append(d)
 
     exibeDefinicaoFormalGramatica()
 ##################################################
@@ -392,7 +408,7 @@ def cyk(entrada):
 # Programa principal
 
 filename = input('Informe o nome do arquivo: ')
-#filename = 'teste7.txt'
+#filename = 'teste2.txt'
 
 try:
     arquivo = open(filename)
