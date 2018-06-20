@@ -2,7 +2,7 @@ import re
 
 regex = re.compile(r"\[(.*?)\]")
 
-#frase = "Mary saw Jupiter with Mars in the sky"
+
 
 ##################################################
 # Adiciona símbolo terminal na lista
@@ -99,6 +99,19 @@ def imprimeTabelaDeDerivacao(tabela, termos):
             termo += ' '
         impressao[len(impressao) - 2] += termo + ' |'
     print('\n'.join(impressao))
+
+##################################################
+# imprime as árvores de derivacao
+'''
+def imprimeArvoresDeDerivacao(tabela, termos):
+    tamanhoExpressao = len(termos)
+    arvore = []
+    for i in range(tamanhoExpressao - 1, 0, -1):
+        folha = []
+        folha.append(termos[i])
+        no = []
+        no.append(tabela[i][i])
+'''
 ##################################################
 # simplifica a gramática
 def simplificaGramatica():
@@ -162,7 +175,8 @@ def simplificaGramatica():
         origem = [s for s in regras if f[0] in s][0]
         destino = [s for s in regras if f[1] in s][0][1:]
         for derivacao in destino:
-            regras[regras.index(origem)].append(derivacao)
+            if derivacao not in regras[regras.index(origem)]:
+                regras[regras.index(origem)].append(derivacao)
     exibeDefinicaoFormalGramatica()
     print("Passo 3: Excluindo símbolos inúteis")
     # Passo 3 - Etapa 1
@@ -174,23 +188,41 @@ def simplificaGramatica():
         for i in range(len(regras)):
             for j in range(1, len(regras[i])):
                 for t in terminaisEVariaveis:
-                    if t in regras[i][j] and regras[i][0] not in variaveisGeradoras:
+                    tamanhoDerivacao = len(regras[i][j])
+                    if t in regras[i][j] and t in terminais:
+                        tamanhoDerivacao = tamanhoDerivacao - 1
+                    for var in variaveisGeradoras:
+                        if var in regras[i][j]:
+                            tamanhoDerivacao = tamanhoDerivacao - 1
+                    if tamanhoDerivacao == 0 and regras[i][0] not in variaveisGeradoras:
                         variaveisGeradoras.append(regras[i][0])
                         terminaisEVariaveis.append(regras[i][0])
 
+    tamanhoRegras = len(regras)
     for var in variaveis:
         if var not in variaveisGeradoras:
-            for i in range(len(regras)):
+            i = 0
+            while i < tamanhoRegras:
+                nARemover = -1
                 if regras[i][0] == var:
                     derivacaoARemover = [s for s in regras if var in s][0]
+                    nARemover = regras.index(derivacaoARemover)
                     regras.remove(derivacaoARemover)
-                for derivacao in regras[i][1:]:
-                    if var in derivacao:
-                        regras[i].remove(derivacao)
+                    tamanhoRegras = tamanhoRegras - 1
+                    if i >= nARemover:
+                        i = i - 1
+                if (nARemover - i != 1):
+                    for derivacao in regras[i][1:]:
+                        if var in derivacao:
+                            regras[i].remove(derivacao)
+
+                i = i + 1
 
     for var in variaveis:
         if var not in variaveisGeradoras:
             variaveis.remove(var)
+
+    exibeDefinicaoFormalGramatica()
 
     # Passo 3 - Etapa 2
     variaveisDerivadas = [variavelInicial]
@@ -209,15 +241,25 @@ def simplificaGramatica():
                     if term in derivacao and term not in terminaisAlcancados:
                         terminaisAlcancados.append(term)
 
+    tamanhoRegras = len(regras)
     for var in variaveis:
         if var not in variaveisDerivadas:
-            for i in range(len(regras)):
+            i = 0
+            while i < tamanhoRegras:
+                nARemover = -1
                 if regras[i][0] == var:
                     derivacaoARemover = [s for s in regras if var in s][0]
+                    nARemover = regras.index(derivacaoARemover)
                     regras.remove(derivacaoARemover)
-                for derivacao in regras[i][1:]:
-                    if var in derivacao:
-                        regras[i].remove(derivacao)
+                    tamanhoRegras = tamanhoRegras - 1
+                    if i >= nARemover :
+                        i = i - 1
+                if (nARemover - i != 1):
+                    for derivacao in regras[i][1:]:
+                        if var in derivacao:
+                            regras[i].remove(derivacao)
+
+                i = i + 1
 
     for term in terminais:
         if term not in terminaisAlcancados:
@@ -285,7 +327,7 @@ def formaNormalChomsky():
         for j in range(1, len(regras[i])):
             derivacaoSubstituta = []
             #Para produções de tamanho maior que 2, simplificar
-            if len(regras[i][j]) > 2:
+            while len(regras[i][j]) > 2:
                 novaDerivacao = regras[i][j][:]
                 novaDerivacao.pop(0)
                 variavelSubstituta = criaVariavel()
@@ -309,8 +351,8 @@ def formaNormalChomsky():
 # Reconhecimento de entrada usando o algoritmo de
 # Cocke-Younger-Kasami
 def cyk(entrada):
-    print('Verificando a aceitação da expressão informada pela gramática')
-    print('usando o algoritmo de Cocke-Younger-Kasami:')
+    #print('Verificando a aceitação da expressão informada pela gramática')
+    #print('usando o algoritmo de Cocke-Younger-Kasami:')
     #print('Verificando a aceitação da expressão\'' + entrada + '\'')
     #print('pela gramática usando o algoritmo de Cocke-Younger-Kasami:')
 
@@ -342,13 +384,15 @@ def cyk(entrada):
     if variavelInicial in tabelaTriangular[0][0]:
         print('A expressão informada foi reconhecida pela gramática!')
         imprimeTabelaDeDerivacao(tabelaTriangular, termos)
+        #imprimeArvoresDeDerivacao(tabelaTriangular, termos)
     else:
         print('A expressão informada NÃO foi reconhecida pela gramática.')
+        imprimeTabelaDeDerivacao(tabelaTriangular, termos)
 ##################################################
 # Programa principal
 
 filename = input('Informe o nome do arquivo: ')
-#filename = 'gram3.txt'
+#filename = 'teste7.txt'
 
 try:
     arquivo = open(filename)
@@ -397,6 +441,7 @@ if (i != 5):
     exibeDefinicaoFormalGramatica()
     simplificaGramatica()
     formaNormalChomsky()
-    print('Informe a expressão a ter ser reconhecimento verificado pela gramática.')
+    print('Informe a expressão a ter seu reconhecimento verificado pela gramática.')
+    #frase = "Mary saw Jupiter with Mars in the sky"
     frase = input('NOTA: Separe cada termo usando um espaço em branco: ')
     cyk(frase)
