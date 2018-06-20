@@ -375,32 +375,81 @@ def cyk(entrada):
     termos = entrada.split()
     tabelaTriangular = []
     linha = []
+
+    ramos = []
+
     for termo in termos:
         var = []
+        folhas = []
         for i in range(len(regras)):
             for derivacao in regras[i][1:]:
                 if termo in derivacao:
+                    folha = [regras[i][0]]
                     var.append(regras[i][0])
+                    folha.append([termo])
+                    if folha not in folhas:
+                        folhas.append(folha)
+        ramos.append(folhas)
         linha.append(var)
     tabelaTriangular.append(linha)
 
+    arvores = [ramos[:]]
+
     for n in range(len(termos) - 1):
         linha = []
+        linhaRamos = []
         for r in range(len(tabelaTriangular[0])-1):
             var = []
+            nivelRamos = []
             for s in range(len(tabelaTriangular)):
                 for i in range(len(regras)):
                     for derivacao in regras[i][1:]:
                         if len(derivacao) == 2:
                             if derivacao[0] in tabelaTriangular[len(tabelaTriangular) - s - 1][r] and derivacao[1] in tabelaTriangular[s][r + s + 1]:
                                 if regras[i][0] not in var:
+                                    celulaRamos = []
+                                    if n == 0:
+                                        ramoEsq = [derivacao[0], [termos[r]]]
+                                        ramoDir = [derivacao[1], [termos[r+1]]]
+                                        ramo = []
+
+                                        if ramoEsq in ramos[r] and ramoDir in ramos[r+1]:
+                                            ramo = [regras[i][0], ramoEsq, ramoDir]
+                                        if len(ramo) > 0 and ramo not in nivelRamos:
+                                            nivelRamos.append(ramo)
+
+                                    elif n > 0:
+                                        ramoEsq = [derivacao[0],[]]
+                                        for d in arvores[len(tabelaTriangular) - s - 1][r]:
+                                            if d[0] == derivacao[0]:
+                                                ramoEsq = d
+                                        ramoDir = [derivacao[1],[]]
+                                        for d in arvores[s][r+s+1]:
+                                            if d[0] == derivacao[1]:
+                                                ramoDir = d
+
+                                        ramo = [regras[i][0], ramoEsq, ramoDir]
+                                        if ramo not in nivelRamos:
+                                            nivelRamos.append(ramo)
+
                                     var.append(regras[i][0])
+                                    if len(celulaRamos) > 0:
+                                        nivelRamos.append(celulaRamos)
+
+            linhaRamos.append(nivelRamos)
             linha.append(var)
+        if len(linhaRamos) > 0:
+            arvores.insert(0, linhaRamos)
         tabelaTriangular.insert(0, linha)
+
     if variavelInicial in tabelaTriangular[0][0]:
         print('A expressão informada foi reconhecida pela gramática!')
         imprimeTabelaDeDerivacao(tabelaTriangular, termos)
-        #imprimeArvoresDeDerivacao(tabelaTriangular, termos)
+        print('Árvore(s) de derivação:')
+        for a in arvores[0][0]:
+            if a[0] == variavelInicial:
+                print(a)
+#        imprimeArvoresDeDerivacao(tabelaTriangular, termos)
     else:
         print('A expressão informada NÃO foi reconhecida pela gramática.')
         imprimeTabelaDeDerivacao(tabelaTriangular, termos)
@@ -408,7 +457,7 @@ def cyk(entrada):
 # Programa principal
 
 filename = input('Informe o nome do arquivo: ')
-#filename = 'teste2.txt'
+#filename = 'teste3.txt'
 
 try:
     arquivo = open(filename)
