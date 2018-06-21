@@ -101,17 +101,46 @@ def imprimeTabelaDeDerivacao(tabela, termos):
     print('\n'.join(impressao))
 
 ##################################################
-# imprime as árvores de derivacao
-'''
-def imprimeArvoresDeDerivacao(tabela, termos):
-    tamanhoExpressao = len(termos)
-    arvore = []
-    for i in range(tamanhoExpressao - 1, 0, -1):
-        folha = []
-        folha.append(termos[i])
-        no = []
-        no.append(tabela[i][i])
-'''
+# percorre os ramos da árvore de derivacao
+def exibeTextoNo(arvore, impressao, nivel):
+    impressao.append(' ')
+    u = len(impressao) - 1
+    for i in range((nivel - 1)*4):
+        impressao[u] = impressao[u] + ' '
+    impressao.append(impressao[u])
+    impressao[u] = impressao[u] + '|'
+    u = u + 1
+    impressao[u] = impressao[u] + '+-- ' + arvore[0]
+    if len(arvore) == 2:
+        impressao[u] = impressao[u] + ' -- ' + arvore[1][0]
+    else:
+        exibeTextoNo(arvore[1], impressao, nivel + 1)
+        exibeTextoNo(arvore[2], impressao, nivel + 1)
+
+##################################################
+# imprime a árvore de derivacao
+def imprimeArvoreDeDerivacao(arvore):
+    impressao = []
+
+    impressao = [' ' + arvore[0]]
+    if len(arvore) == 2:
+        impressao[0] = impressao[0] + ' -- ' + arvore[1][0]
+    else:
+        exibeTextoNo(arvore[1], impressao, 1)
+        exibeTextoNo(arvore[2], impressao, 1)
+
+    #completa linhas verticais
+    for i in range(len(impressao)):
+        indiceVLine = impressao[i].find('|')
+        if indiceVLine > 0:
+            for j in range(i - 1, 0, -1):
+                if impressao[j][indiceVLine] != ' ':
+                    break;
+                else:
+                    impressao[j] = impressao[j][:indiceVLine] + '|' + impressao[j][indiceVLine+1:]
+
+    print('\n'.join(impressao))
+
 ##################################################
 # simplifica a gramática
 def simplificaGramatica():
@@ -197,18 +226,6 @@ def simplificaGramatica():
                 if tamanhoDerivacao == 0 and regras[i][0] not in variaveisGeradoras:
                     variaveisGeradoras.append(regras[i][0])
                     terminaisEVariaveis.append(regras[i][0])
-                '''
-                for t in terminaisEVariaveis:
-                    tamanhoDerivacao = len(regras[i][j])
-                    if t in regras[i][j] and t in terminais:
-                        tamanhoDerivacao = tamanhoDerivacao - 1
-                    for var in variaveisGeradoras:
-                        if var in regras[i][j]:
-                            tamanhoDerivacao = tamanhoDerivacao - 1
-                    if tamanhoDerivacao == 0 and regras[i][0] not in variaveisGeradoras:
-                        variaveisGeradoras.append(regras[i][0])
-                        terminaisEVariaveis.append(regras[i][0])
-                '''
 
     tamanhoRegras = len(regras)
     for var in variaveis:
@@ -448,8 +465,8 @@ def cyk(entrada):
         print('Árvore(s) de derivação:')
         for a in arvores[0][0]:
             if a[0] == variavelInicial:
-                print(a)
-#        imprimeArvoresDeDerivacao(tabelaTriangular, termos)
+                #print(a)
+                imprimeArvoreDeDerivacao(a)
     else:
         print('A expressão informada NÃO foi reconhecida pela gramática.')
         imprimeTabelaDeDerivacao(tabelaTriangular, termos)
@@ -457,7 +474,7 @@ def cyk(entrada):
 # Programa principal
 
 filename = input('Informe o nome do arquivo: ')
-#filename = 'teste3.txt'
+#filename = 'gram3.txt'
 
 try:
     arquivo = open(filename)
@@ -507,6 +524,7 @@ if (i != 5):
     simplificaGramatica()
     formaNormalChomsky()
     print('Informe a expressão a ter seu reconhecimento verificado pela gramática.')
-    #frase = "Mary saw Jupiter with Mars in the sky"
+    #frase = "Mary saw the sky in the sky with Jupiter with Mars"
+    #frase = 'a a a a a a a a b'
     frase = input('NOTA: Separe cada termo usando um espaço em branco: ')
     cyk(frase)
